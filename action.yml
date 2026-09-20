@@ -1,5 +1,5 @@
 name: 'ReadyStack Compliance Lint'
-description: 'Run any of 137 ReadyStack regulation and deadline linters on your repo in CI (CRA, DORA, NIS2, WCAG, PCI, EOL dates, deprecated APIs). Free single-file checks; folder sweeps are free for 7 days, then a licence key.'
+description: 'Run 137 ReadyStack regulation and deadline linters in CI (CRA, DORA, NIS2, WCAG, PCI, EOL dates, deprecated APIs).'
 author: 'ReadyStack'
 branding:
   icon: 'shield'
