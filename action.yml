@@ -1,0 +1,41 @@
+name: 'ReadyStack Compliance Lint'
+description: 'Run any of 137 ReadyStack regulation and deadline linters on your repo in CI (CRA, DORA, NIS2, WCAG, PCI, EOL dates, deprecated APIs). Free single-file checks; folder sweeps are free for 7 days, then a licence key.'
+author: 'ReadyStack'
+branding:
+  icon: 'shield'
+  color: 'orange'
+inputs:
+  tool:
+    description: 'Tool name, e.g. cron-schedule-lint (see README for the full list)'
+    required: true
+  path:
+    description: 'Folder to scan'
+    required: false
+    default: '.'
+  ext:
+    description: 'Only files with this extension, e.g. .py'
+    required: false
+  report:
+    description: 'Write a report: csv, json or html (readystack-report.<fmt>)'
+    required: false
+  license:
+    description: 'READYSTACK_LICENSE key for folder sweeps after the 7-day trial'
+    required: false
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - shell: bash
+      env:
+        READYSTACK_LICENSE: ${{ inputs.license }}
+        RS_TOOL: ${{ inputs.tool }}
+        RS_PATH: ${{ inputs.path }}
+        RS_EXT: ${{ inputs.ext }}
+        RS_REPORT: ${{ inputs.report }}
+      run: |
+        ARGS=(--dir "$RS_PATH" --ci)
+        if [ -n "$RS_EXT" ]; then ARGS+=(--ext "$RS_EXT"); fi
+        if [ -n "$RS_REPORT" ]; then ARGS+=(--report "$RS_REPORT" --out "readystack-report.$RS_REPORT"); fi
+        npx --yes "@readystack/$RS_TOOL" "${ARGS[@]}"
