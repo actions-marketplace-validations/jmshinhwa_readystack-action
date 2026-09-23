@@ -1,0 +1,21 @@
+name: selftest
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: lint
+        uses: ./
+        continue-on-error: true
+        with:
+          tool: actions-deprecation-lint-2026
+          path: test
+      - name: the folder sweep must see .github/workflows (s158 dot-folder fix)
+        run: |
+          npx --yes @readystack/actions-deprecation-lint-2026 --dir test --report json --out r.json > /dev/null 2>&1 || true
+          node -e "const r=require('./r.json');const n=r.files.reduce((a,f)=>a+f.hits.length,0);console.log('findings',n);process.exit(n>0?0:1)"
