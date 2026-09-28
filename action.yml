@@ -19,14 +19,26 @@ inputs:
     description: 'Write a report: csv, json or html (readystack-report.<fmt>)'
     required: false
   license:
-    description: 'READYSTACK_LICENSE key for folder sweeps after the 7-day trial'
+    description: 'READYSTACK_LICENSE key - folder sweeps need one ($29 once per tool, or a team key for every tool)'
     required: false
+  summary:
+    description: 'Write the findings table to the job summary (true/false)'
+    required: false
+    default: 'true'
+  comment:
+    description: 'On pull requests, post one comment with the findings and update it on every push. Needs permissions: pull-requests: write'
+    required: false
+    default: 'false'
+  github-token:
+    description: 'Token used for the pull-request comment'
+    required: false
+    default: ${{ github.token }}
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
+        node-version: '22'
     - shell: bash
       env:
         READYSTACK_LICENSE: ${{ inputs.license }}
@@ -34,8 +46,23 @@ runs:
         RS_PATH: ${{ inputs.path }}
         RS_EXT: ${{ inputs.ext }}
         RS_REPORT: ${{ inputs.report }}
+        RS_SUMMARY: ${{ inputs.summary }}
+        RS_COMMENT: ${{ inputs.comment }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        RS_REPO: ${{ github.repository }}
+        RS_PR: ${{ github.event.pull_request.number }}
       run: |
+        set +e
         ARGS=(--dir "$RS_PATH" --ci)
         if [ -n "$RS_EXT" ]; then ARGS+=(--ext "$RS_EXT"); fi
         if [ -n "$RS_REPORT" ]; then ARGS+=(--report "$RS_REPORT" --out "readystack-report.$RS_REPORT"); fi
-        npx --yes "@readystack/$RS_TOOL" "${ARGS[@]}"
+        npx --yes "@readystack/$RS_TOOL" "${ARGS[@]}"; RC=$?
+        if [ "$RS_SUMMARY" = "true" ] || [ "$RS_COMMENT" = "true" ]; then
+          J=(--dir "$RS_PATH" --report json --out "$RUNNER_TEMP/readystack.json")
+          if [ -n "$RS_EXT" ]; then J+=(--ext "$RS_EXT"); fi
+          npx --yes "@readystack/$RS_TOOL" "${J[@]}" > /dev/null 2>&1
+          node "$GITHUB_ACTION_PATH/summary.js" "$RUNNER_TEMP/readystack.json" "$RS_TOOL" > "$RUNNER_TEMP/readystack.md"
+          if [ "$RS_SUMMARY" = "true" ] && [ -s "$RUNNER_TEMP/readystack.md" ]; then cat "$RUNNER_TEMP/readystack.md" >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ "$RS_COMMENT" = "true" ] && [ -n "$RS_PR" ] && [ -s "$RUNNER_TEMP/readystack.md" ]; then node "$GITHUB_ACTION_PATH/comment.js" "$RUNNER_TEMP/readystack.md" "$RS_TOOL"; fi
+        fi
+        exit $RC

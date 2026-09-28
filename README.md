@@ -10,9 +10,19 @@ One action, **137 linters**. Each one checks a specific regulation, deadline or 
     # ext: .py
     # report: json
     # license: ${{ secrets.READYSTACK_LICENSE }}
+    # summary: true     # findings table on the run page (default)
+    # comment: true     # one PR comment, updated on every push - add the permissions below
 ```
 
-Single-file checks are free forever. Folder sweeps (`--dir`, what this action runs) are free for 7 days per machine, then need a licence key ($29 once per tool, or a team key for every tool) — https://getreadystack.com/pricing?ref=gh-action
+Every run writes a findings table (file, line, severity, finding, fix) to the job summary. With `comment: true` the same table is posted once on the pull request and updated on each push, so reviewers see it without opening the logs:
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+```
+
+Single-file checks are free. Folder sweeps (`--dir`, what this action runs) need a licence key: $29 once per tool, or one team key ($149 once, 5 seats) for every tool — https://getreadystack.com/pricing?ref=gh-action
 
 Every tool also runs locally (`npx @readystack/<tool> <file>`) and as an MCP server (`--mcp`) for Claude Code, Cursor and Windsurf.
 

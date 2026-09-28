@@ -1,0 +1,28 @@
+name: selftest
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: lint
+        uses: ./
+        continue-on-error: true
+        with:
+          tool: actions-deprecation-lint-2026
+          path: test
+      - name: the free single-file check finds the deprecated action
+        run: |
+          npx --yes @readystack/actions-deprecation-lint-2026 test/.github/workflows/sample.yml > one.txt 2>&1 || true
+          grep -v "npm notice" one.txt
+          grep -q "actions/checkout@v1-v4" one.txt
+      - name: the folder sweep sees .github/workflows and, without a key, stops at the licence (s158 dot-folder fix, no free trial since 2026-09-23)
+        run: |
+          set +e
+          npx --yes @readystack/actions-deprecation-lint-2026 --dir test > dir.txt 2>&1; rc=$?
+          grep -v "npm notice" dir.txt
+          test "$rc" = "2" && grep -q "issues in 1 of 1 files" dir.txt && grep -q "needs a licence" dir.txt
