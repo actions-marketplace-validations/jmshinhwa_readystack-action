@@ -19,7 +19,7 @@ inputs:
     description: 'Write a report: csv, json or html (readystack-report.<fmt>)'
     required: false
   license:
-    description: 'READYSTACK_LICENSE key for folder sweeps after the 7-day trial'
+    description: 'READYSTACK_LICENSE key - folder sweeps need one ($29 once per tool, or a team key for every tool)'
     required: false
   summary:
     description: 'Write the findings table to the job summary (true/false)'

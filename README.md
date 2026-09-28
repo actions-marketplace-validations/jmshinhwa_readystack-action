@@ -22,7 +22,7 @@ permissions:
   pull-requests: write
 ```
 
-Single-file checks are free forever. Folder sweeps (`--dir`, what this action runs) are free for 7 days per machine, then need a licence key ($29 once per tool, or a team key for every tool) — https://getreadystack.com/pricing?ref=gh-action
+Single-file checks are free. Folder sweeps (`--dir`, what this action runs) need a licence key: $29 once per tool, or one team key ($149 once, 5 seats) for every tool — https://getreadystack.com/pricing?ref=gh-action
 
 Every tool also runs locally (`npx @readystack/<tool> <file>`) and as an MCP server (`--mcp`) for Claude Code, Cursor and Windsurf.
 
